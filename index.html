@@ -27,24 +27,30 @@ function bone(x1,y1,x2,y2,c,w){g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.s
 function joint(x,y,r,c){g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fillStyle=c;g.fill();g.lineWidth=2;g.strokeStyle='#262b2e';g.stroke()}
 function shoe(x,y,angle){g.save();g.translate(x,y);g.rotate(angle);g.fillStyle='#ad514b';g.strokeStyle='#26282b';g.lineWidth=3;g.beginPath();g.ellipse(4,0,13,6,-.08,0,Math.PI*2);g.fill();g.stroke();g.beginPath();g.moveTo(-6,3);g.lineTo(15,3);g.strokeStyle='#ead8c4';g.lineWidth=2;g.stroke();g.restore()}
 function leg(hipX,footX,footY,front){
- const hx=hipX,hy=-44,dx=footX-hx,dy=footY-hy;
- const len=Math.max(1,Math.hypot(dx,dy)),upper=27,lower=27;
+ const hx=hipX,hy=-44,dx=footX-hx,dy=footY-3-hy;
+ const len=Math.max(1,Math.hypot(dx,dy)),upper=26,lower=27;
  const reach=Math.min(upper+lower-1,Math.max(Math.abs(upper-lower)+1,len));
  const along=(upper*upper-lower*lower+reach*reach)/(2*reach);
  const bend=Math.sqrt(Math.max(0,upper*upper-along*along));
  const ux=dx/len,uy=dy/len;
- const kx=hx+ux*along+(front?1:-1)*(-uy)*bend;
- const ky=hy+uy*along+(front?1:-1)*ux*bend;
- bone(hx,hy,kx,ky,front?'#657256':'#46523f',13);
- joint(kx,ky,6,front?'#657256':'#46523f');
- bone(kx,ky,footX,footY-3,front?'#657256':'#46523f',11);
- shoe(footX,footY,air?-.12:0)
+ const kx=hx+ux*along+(front?1:-1)*(-uy)*bend*.72;
+ const ky=hy+uy*along+(front?1:-1)*ux*bend*.72;
+ const c=front?'#626d51':'#4a5544';
+ g.beginPath();g.moveTo(hx,hy);g.quadraticCurveTo((hx+kx)/2-2,(hy+ky)/2,kx,ky);
+ g.quadraticCurveTo((kx+footX)/2+2,(ky+footY-3)/2,footX,footY-3);
+ g.strokeStyle='#262b2a';g.lineWidth=15;g.stroke();
+ g.strokeStyle=c;g.lineWidth=10;g.stroke();
+ g.beginPath();g.moveTo(hx-2,hy+5);g.quadraticCurveTo(kx-4,ky-2,footX-2,footY-6);
+ g.strokeStyle=front?'#89947a':'#65715a';g.lineWidth=2;g.stroke();
+ shoe(footX,footY,air?-.08:0)
 }
 function foot(offset,front){
- if(air)return {x:(front?15:-17)+(P.vy<0?-5:8),y:P.vy<0?-22:-11};
- const p=M.phase+offset;
- const step=Math.sin(p),up=Math.max(0,Math.cos(p));
- return {x:(front?9:-9)+step*19*M.speed,y:-5-up*17*M.speed};
+ if(air)return {x:(front?12:-13)+(P.vy<0?-3:5),y:P.vy<0?-18:-10};
+ const p=((M.phase+offset)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+ const t=p/(Math.PI*2),stride=14*M.speed;
+ if(t<.57){const u=t/.57;return {x:(front?9:-9)+stride*(1-2*u),y:-5}}
+ const u=(t-.57)/.43,sm=u*u*(3-2*u);
+ return {x:(front?9:-9)+stride*(-1+2*sm),y:-5-Math.sin(Math.PI*u)*11*M.speed}
 }
 const back=foot(Math.PI,false),fore=foot(0,true);
 leg(-10,back.x,back.y,false);
